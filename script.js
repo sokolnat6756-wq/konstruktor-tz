@@ -5,6 +5,8 @@
   var actionsList = document.getElementById("actions-list");
   var addActionBtn = document.getElementById("add-action");
   var clearBtn = document.getElementById("clear-btn");
+  var copyBtn = document.getElementById("copy-btn");
+  var copyStatus = document.getElementById("copy-status");
   var resultArea = document.getElementById("result");
   var actionCounter = 0;
   var hasBuiltOnce = false;
@@ -465,6 +467,88 @@
     return false;
   }
 
+  function clearCopyStatus() {
+    copyStatus.hidden = true;
+    copyStatus.textContent = "";
+    copyStatus.classList.remove("copy-status--manual");
+  }
+
+  function showCopyStatus(message, isManual) {
+    copyStatus.hidden = false;
+    copyStatus.textContent = message;
+    if (isManual) {
+      copyStatus.classList.add("copy-status--manual");
+    } else {
+      copyStatus.classList.remove("copy-status--manual");
+    }
+  }
+
+  function updateCopyButtonState() {
+    copyBtn.disabled = !hasContent(resultArea.value);
+    if (copyBtn.disabled) {
+      clearCopyStatus();
+    }
+  }
+
+  function selectResultText() {
+    resultArea.focus();
+    resultArea.select();
+    try {
+      resultArea.setSelectionRange(0, resultArea.value.length);
+    } catch (err) {
+      // ignore older browsers without setSelectionRange on textarea
+    }
+  }
+
+  function copyWithExecCommand() {
+    selectResultText();
+    try {
+      return document.execCommand("copy");
+    } catch (err) {
+      return false;
+    }
+  }
+
+  function copyResultText() {
+    var text = resultArea.value;
+
+    if (!hasContent(text)) {
+      updateCopyButtonState();
+      return;
+    }
+
+    clearCopyStatus();
+
+    function onSuccess() {
+      showCopyStatus("ТЗ скопировано", false);
+    }
+
+    function onManualFallback() {
+      selectResultText();
+      showCopyStatus(
+        "Автоматическое копирование недоступно. Текст выделен — нажмите Ctrl+C (на Mac: ⌘+C), чтобы скопировать вручную.",
+        true
+      );
+    }
+
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+      navigator.clipboard.writeText(text).then(onSuccess).catch(function () {
+        if (copyWithExecCommand()) {
+          onSuccess();
+        } else {
+          onManualFallback();
+        }
+      });
+      return;
+    }
+
+    if (copyWithExecCommand()) {
+      onSuccess();
+    } else {
+      onManualFallback();
+    }
+  }
+
   function resetForm() {
     form.reset();
     actionsList.innerHTML = "";
@@ -475,6 +559,8 @@
     resultArea.value = "";
     hasBuiltOnce = false;
     clearAllErrors();
+    clearCopyStatus();
+    updateCopyButtonState();
     document.getElementById("product-idea").focus();
   }
 
@@ -498,6 +584,8 @@
     var doc = buildDocument(collectData());
     resultArea.value = doc;
     hasBuiltOnce = true;
+    clearCopyStatus();
+    updateCopyButtonState();
     resultArea.focus();
     resultArea.scrollIntoView({ behavior: "smooth", block: "start" });
   });
@@ -515,8 +603,15 @@
     resetForm();
   });
 
+  copyBtn.addEventListener("click", function () {
+    copyResultText();
+  });
+
+  resultArea.addEventListener("input", updateCopyButtonState);
+
   // Стартовые три пустых поля действий (удобно для 3–5 пунктов)
   createActionRow();
   createActionRow();
   createActionRow();
+  updateCopyButtonState();
 })();

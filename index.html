@@ -219,10 +219,14 @@
     </section>
 
     <section class="panel result-panel" aria-labelledby="result-heading">
-      <h2 id="result-heading">Ваше ТЗ</h2>
+      <div class="result-toolbar">
+        <h2 id="result-heading">Ваше ТЗ</h2>
+        <button type="button" class="btn btn--secondary" id="copy-btn" disabled>Скопировать ТЗ</button>
+      </div>
       <label for="result" class="visually-hidden">Текст готового технического задания</label>
-      <textarea id="result" class="result-area" rows="28" placeholder="Здесь появится собранное ТЗ после нажатия кнопки «Собрать ТЗ». Вы сможете выделить текст, отредактировать его и скопировать вручную." spellcheck="true"></textarea>
-      <p class="result-hint">Проверьте документ, дополните детали и вставьте его в Cursor или другое приложение для разработки.</p>
+      <textarea id="result" class="result-area" rows="28" placeholder="Здесь появится собранное ТЗ после нажатия кнопки «Собрать ТЗ». Вы сможете выделить текст, отредактировать его и скопировать вручную." spellcheck="true" aria-describedby="copy-status result-hint"></textarea>
+      <p class="copy-status" id="copy-status" role="status" aria-live="polite" hidden></p>
+      <p class="result-hint" id="result-hint">Проверьте документ, дополните детали и вставьте его в Cursor или другое приложение для разработки.</p>
     </section>
   </main>
 
